@@ -2,7 +2,7 @@ script_key = "DBVHszBoTSbvzQTfWiJpijjGSNlKFXfs"
 getgenv().Team = "Pirates"
 getgenv().WebhookSetting = {
     Enable = true,
-    Url = "",
+    Url = "https://discord.com/api/webhooks/1305956079779188799/OP_lVhsKO1XGV1Eh9MrA7klrwvbWnBD9IBG1bMQ9PIUGuiMQmszB3zGk03hwGZ_xrhk3",
     Embed = true,
     StoredFruit = true,
     ImageEmbed = true,
@@ -144,7 +144,7 @@ getgenv().Theme = { -- getgenv().Theme = false if you want to disable
     OldTheme = true,
     Name="Hutao", --"Raiden","Ayaka","Hutao","Yelan","Miko","Nahida","Ganyu","Keqing","Nilou","Barbara","Zhongli","Layla"
     Custom={
-            ["Enable"] = false,
+            ["Enable"] = true,
             ['char_size'] = UDim2.new(0.668, 0, 1.158, 0),
             ['char_pos'] = UDim2.new(0.463, 0, -0.105, 0),
             ['title_color'] = Color3.fromRGB(255, 221, 252),
