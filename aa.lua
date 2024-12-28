@@ -34,7 +34,7 @@ if settings1 then
 end
 
 -- Settings 2: Card picker
-local settings2 = true
+local settings2 = false
 if settings2 then
     getgenv().FocusWave = 20 -- Priority limit wave
     getgenv().PriorityCards = { -- Priority tags when wave = FocusWave
