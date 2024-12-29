@@ -1,172 +1,158 @@
 setfpscap(15)
--- Nếu nó là false có nghĩa là đang tắt, còn nếu là true thì đang bật
--- Hãy bật tắt bằng cách điền true / false
--- Mỗi một chiều thức ví dụ Z, X, C, V của từng vũ khí như Súng, Kiếm, Võ, Trái ác quỷ
+script_key = "DBVHszBoTSbvzQTfWiJpijjGSNlKFXfs"
+getgenv().Team = "Pirates"
+getgenv().WebhookSetting = {
+    Enable = true,
+    Url = "",
+    Embed = true,
+    StoredFruit = true,
+    ImageEmbed = true,
+    CustomImage = true,
+    CustomImageUrl = "https://i.imgur.com/wWxwPWE.png", --cf by eric
+    OnServerHop = false,
+    BountyChanged = true,
+}
+getgenv().PlayerSetting = {
+    SafeMode = true,
+    SafeModeHealth = {4300,40},--Number And %, Start Safe Mode And Stop Safe Mode
+    UseRaceV3 = true,
+    SmartUseRaceV3= true,
+    DashIfV4 = true,
+    Dash= false,
+    IgnoreInCombat = true, --Turn This Off When Reseting Or Hop You Lost Bounty (Rare, Happens On Some Accounts) cf by eric
+    ChatKillEnable = false,
+    Chat = {"gg"},
+    IgnoreFriends = false, --true neu muon co ban be vao no hop sv
+}
+getgenv().AttackSetting = {
+    ForceMelee = true,
+    ForceMeleeTime = 3.5,
+    StopAttack =true, --When Meet Below Condition
+    StopAttackAtHealth = 50,--%
+    FastAttack=true, -- Toggle Fast Attack
+}
+getgenv().UseSkillSetting = {
+    -- Three Methods: "Normal", "Fast", "Spam", "SpamAll"
+    MethodIfTargetOnV4 = "Fast",
+    MethodIfPlayerOnV4 = "SpamAll",
+    MethodIfTargetUseFruit = {Fruits={buddha},Method="Spam"},
+    NormalMethod = "Fast",
+    LowHealthPlayerCondition = { --Player Can Attack Us, No Need For Slow Attack
+        Enable = true,
+        Health = 70,--%Health That Are Low
+        Method = "Fast",
+    },
+    LowHealthTargetCondition = {
+        Enable = true,
+        Health = 20,--%Health That Are Low
+        DelayFirstTime = {true,2}, --1 Is Enable, 2 Is Second To Delay Before Attack Again
+        Method = "Fast",
+        WaitTime = 0.5,-- If Normal Method, Wait Every Skill If It Hits Target
+    }
+}
+getgenv().WeaponsSetting = {
+    ["Melee"] = {
+        ["Enable"] = true,
+        ["Delay"] = 1, 
+        ["SwitchNextWeaponIfCooldown"] = true,
+        ["Skills"] = {
+            ["Z"] = {
+                ["Enable"] = true,
+                ["NoPredict"] = true, -- For Dragon Tailon, Disable it 
+                ["HoldTime"] = 1.2,
+                ["TimeToNextSkill"] = 0, -- cf by eric
+            },
+        [ "X"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 0.14,
+                ["TimeToNextSkill"] = 0,
+            },
 
---[[
-Enable = true / false bật tắt chức năng mong muốn
-Number = 1 là chiêu sẽ được ưu tiên sử dụng trước, số càng thấp thì càng được ưu tiên
-HoldTime = 0.1 là giữ chiêu thức của vũ khí đó trong 0.1s
-]]
-
-repeat task.wait(1) until game and game.Players.LocalPlayer and game:IsLoaded()
-
-getgenv().Key = "0da073f2eaa92208c171793e" -- Nhập key của bạn vô đây
-
-_G.Configs = {
-    Performance = {
-        WhiteScreen = false, -- Chỉnh màn hình trắng
-        BlackScreen = {
-            Enabled = true, -- chỉnh bảng trạng thái săn
-            Font = Enum.Font.FredokaOne, -- Chỉnh kiểu chữ
-            Transparency = 0.5, -- Chỉnh độ trong suốt
+            ["C"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 0.4,
+                ["TimeToNextSkill"] = 0,
+            },
         },
     },
-    allowed_actions = {
-        AutoBounty = true,
-        Team = "Pirates", -- Chỉnh đội để săn ví dụ: Pirates / Marines
-        Continue = 5, -- Nếu người chơi không trong combat trong 5 giây thì bỏ qua
-        Dodge = true, -- Né tránh đòn tấn công từ đối phương
-        Ken = true, -- Tự động bật ken
-        Random = false, -- Tự động dùng bất kì chiêu thức nào có thể gây sát thương
-        Weapons = {
-            Sword = {
-                Enable = true,
-                Skills = {
-                    X = {
-                        Enable = true,
-                        Number = 3,
-                        HoldTime = 0.1,
-                    },
-                    Z = {
-                        Enable = true,
-                        Number = 2,
-                        HoldTime = 0.2,
-                    },
-                },
+    ["Blox Fruit"] = {
+        ["Enable"] = false,
+        ["Delay"] = 1,
+        ["SwitchNextWeaponIfCooldown"] = true,
+        ["Skills"] = {
+            ["Z"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 2,
+                ["TimeToNextSkill"] = 0,
             },
-            ['Blox Fruit'] = {
-                Enable = false,
-                Skills = {
-                    X = {
-                        Enable = true,
-                        Number = 1,
-                        HoldTime = 0.1,
-                    },
-                    C = {
-                        Enable = false,
-                        Number = 4.5,
-                        HoldTime = 0.2,
-                    },
-                    Z = {
-                        Enable = false,
-                        Number = 4,
-                        HoldTime = 0.1,
-                    },
-                    F = {
-                        Enable = false,
-                        Number = 8,
-                        HoldTime = 0.1,
-                    },
-                    V = {
-                        Enable = false,
-                        Number = 7,
-                        HoldTime = 0.1,
-                    },
-                },
+            ["X"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 0.2,
+                ["TimeToNextSkill"] = 0,
             },
-            Melee = {
-                Enable = true,
-                Skills = {
-                    X = {
-                        Enable = true,
-                        Number = 5.5,
-                        HoldTime = 0.1,
-                    },
-                    C = {
-                        Enable = true,
-                        Number = 5,
-                        HoldTime = 0.3,
-                    },
-                    Z = {
-                        Enable = true,
-                        Number = 4,
-                        HoldTime = 0.1,
-                    },
-                },
+
+            ["C"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 0.3,
+                ["TimeToNextSkill"] = 0,
             },
-            Gun = {
-                Enable = false,
-                Skills = {
-                    X = {
-                        Enable = true,
-                        Number = 1,
-                        HoldTime = 0.16,
-                    },
-                    Z = {
-                        Enable = true,
-                        Number = 5,
-                        HoldTime = 0.15,
-                    },
-                },
+            ["V"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 0.2,
+                ["TimeToNextSkill"] = 0,
+            },
+            ["F"] = {
+                ["Enable"] = false,
+                ["HoldTime"] = 0,
+                ["TimeToNextSkill"] = 0,
             },
         },
-        AutoView = false, -- Tự động quan sát người bị săn
-        SafeZone = {
-            Enabled = true,
-            Max = 40000, -- Độ cao sẽ bỏ chạy và đến, khi bị đánh như 1 con chó
-            ProtectCD = true,
-            HighestHealth = 50, -- Khi lượng máu được hồi phục tầm 50% sẽ quay lại chiến tiếp
-            LowestHealth = 40, -- Máu thấp nhất sẽ bắt đầu chạy như 1 con chó
-        },
-        Webhook = {
-            Enabled = true,
-            Logs = {
-                Console = false, -- Hiển thị file lỗi khi đang săn, hỗ trợ dev fix bugs
-                PlayerStatus = true, -- Hiển thị thông tin khi săn
+    },
+    ["Sword"] = {
+        ["Enable"] = true,
+        ["Delay"] = 1.3,
+        ["Skills"] = {
+            ["Z"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 1.2,
+                ["TimeToNextSkill"] = 0,
             },
-            URL = "https://discord.com/api/webhooks/1234226708228341820/8nmnN9Yir6qd7jgwaTkkvzazuymTxcpk8ptUxAgPboo-zYYjsqofwYeJYYfZmNouMOqP",
-        },
-        RandomATK = 35,
-        Limited = 45, -- Giới hạn thời gian săn 1 người là 45 giây
-        MethodClicks = {
-            Melee = true, -- Vũ khí sẽ được chọn để click
-            CanM1At = 9000, -- Có thể bắt đầu click khi người bị săn còn 9000 máu
-            Count = 6, -- Chiêu thức được tung ra đủ 6 lần sẽ bắt đầu click
-            Gun = false, -- Vũ khí sẽ được chọn để click
-            Delay = 0.15, -- Độ trễ khi click
-            Sword = false, -- Vũ khí sẽ được chọn để click
-        },
-        IgnoreFruits = {
-        }, -- Bỏ qua những thằng ăn trái ác quỷ
-        Race = {
-            V4 = {
-                Enabled = true, -- Tự động dùng V4
-                UseAt = 14000, -- Dùng khi 14000 máu
+            ["X"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 0.5,
+                ["TimeToNextSkill"] = 0,
             },
-            V3 = {
-                Enabled = true, -- Tự động dùng V3
-                Settings = {
-                    Shark = {
-                        Stun = 2, -- Tự động tộc cá nếu bị choáng quá 2 giây
-                    },
-                    Human = 8500, -- Tự động dùng tộc human khi máu còn 8500
-                },
+        },
+    },
+    ["Gun"] = {
+        ["Enable"] = false,
+        ["Delay"] = 0.5,
+        ["Skills"] = {
+            ["Z"] = {
+                ["Enable"] = false,
+                ["HoldTime"] = 0.1,
+                ["TimeToNextSkill"] = 0,
+            },
+            ["X"] = {
+                ["Enable"] = true,
+                ["HoldTime"] = 0.1,
+                ["TimeToNextSkill"] = 0,
             },
         },
     },
 }
-
-_G.FX_Options = {
-        Enabled = false, -- Bật tắt chỉnh sửa đồ hoạ
-        Textures = true, -- Xoá kết cấu, hiệu ứng
-        VisualEffects = true, -- Xoá hiệu ứng
-        Invisible = false, -- Ẩn các khối
-        Parts = false, -- Bật / tắt ẩn các khối phải kết hợp với "Invisible
-        Particles = true,  -- Xoá hiệu ứng
-        Sky = false, --> Xoá trời
-        FullBright = true -- Chỉnh sáng
-};
-
--- Kịch bản sẽ được thực hiện:
-loadstring(game:HttpGet('https://raw.githubusercontent.com/RedGamer12/TNNP-SYSTEM/refs/heads/main/client/BloxFruit/BountyLoader-obfuscated.lua'))(); 
+getgenv().Theme = { -- getgenv().Theme = false if you want to disable
+    OldTheme = false,
+    Name="Hutao", --"Raiden","Ayaka","Hutao","Yelan","Miko","Nahida","Ganyu","Keqing","Nilou","Barbara","Zhongli","Layla"
+    Custom={
+            ["Enable"] = false,
+            ['char_size'] = UDim2.new(0.668, 0, 1.158, 0),
+            ['char_pos'] = UDim2.new(0.463, 0, -0.105, 0),
+            ['title_color'] = Color3.fromRGB(255, 221, 252),
+            ['titleback_color'] = Color3.fromRGB(169, 20, 255),
+            ['list_color'] = Color3.fromRGB(255, 221, 252),
+            ['liststroke_color'] = Color3.fromRGB(151, 123, 207),
+            ['button_color'] = Color3.fromRGB(255, 221, 252)
+       }
+}
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/248f97d7a28a4d09c641d8279a935333.lua"))()
