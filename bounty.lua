@@ -1,4 +1,3 @@
-setfpscap(15)
 script_key = "DBVHszBoTSbvzQTfWiJpijjGSNlKFXfs"
 getgenv().Team = "Pirates"
 getgenv().WebhookSetting = {
