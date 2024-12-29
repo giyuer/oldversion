@@ -1,3 +1,4 @@
+setfpscap(15)
 -- Nếu nó là false có nghĩa là đang tắt, còn nếu là true thì đang bật
 -- Hãy bật tắt bằng cách điền true / false
 -- Mỗi một chiều thức ví dụ Z, X, C, V của từng vũ khí như Súng, Kiếm, Võ, Trái ác quỷ
