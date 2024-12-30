@@ -155,3 +155,101 @@ getgenv().Theme = { -- getgenv().Theme = false if you want to disable
        }
 }
 loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/248f97d7a28a4d09c641d8279a935333.lua"))()
+
+wait(1)
+
+repeat wait() until game:IsLoaded()
+
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local TIME_ZONE = 1
+local WEBHOOK_URL = "https://discord.com/api/webhooks/XXXXXX/YYYYYY" -- Replace with your webhook URL
+local AUTO_HOP_ENABLED = true
+
+local function getCurrentTimestamp()
+    local date = os.date("!*t")
+    local hour = (date.hour + TIME_ZONE) % 24
+    local ampm = hour < 12 and "AM" or "PM"
+    return string.format("%02i:%02i %s", ((hour - 1) % 12) + 1, date.min, ampm)
+end
+
+local function sendWebhookNotification(message, playerName)
+    local embed = {
+        title = "Username: ||" .. playerName .. "||",
+        description = "**Current Time: **" .. getCurrentTimestamp(),
+        type = "rich",
+        color = tonumber(0xffffff),
+        fields = {{
+            name = "Stats",
+            value = message,
+            inline = true
+        }}
+    }
+    syn.request({
+        Url = WEBHOOK_URL,
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body = HttpService:JSONEncode({ content = "", embeds = { embed } })
+    })
+end
+
+local function findNewServer()
+    local gameId = game.PlaceId
+    local currentJobId = game.JobId
+    local apiEndpoint = "https://games.roblox.com/v1/games/" .. gameId .. "/servers/Public?sortOrder=Desc&limit=100"
+
+    local function fetchServers(cursor)
+        local url = apiEndpoint .. (cursor and "&cursor=" .. cursor or "")
+        local response = game:HttpGet(url)
+        return HttpService:JSONDecode(response)
+    end
+
+    local nextCursor
+    repeat
+        local serverData = fetchServers(nextCursor)
+        for _, server in ipairs(serverData.data) do
+            if server.playing < server.maxPlayers and server.id ~= currentJobId then
+                local success = pcall(TeleportService.TeleportToPlaceInstance, TeleportService, gameId, server.id, Players.LocalPlayer)
+                if success then return end
+            end
+        end
+        nextCursor = serverData.nextPageCursor
+        wait(5)
+    until not nextCursor
+end
+
+local function handleFriendInServer()
+    if not AUTO_HOP_ENABLED then return end
+
+    local gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+    local message = string.format("**Game: ** %s\n**Friend Joined Your Game**\n*Hopping Servers Now*", gameName)
+    sendWebhookNotification(message, Players.LocalPlayer.Name)
+    findNewServer()
+end
+
+local function checkForFriends()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player:IsFriendsWith(Players.LocalPlayer.UserId) then
+            handleFriendInServer()
+            break
+        end
+    end
+end
+
+-- Check when a new player joins
+Players.PlayerAdded:Connect(function(player)
+    if player:IsFriendsWith(Players.LocalPlayer.UserId) then
+        handleFriendInServer()
+    end
+end)
+
+-- Periodically check for friends in the server
+task.spawn(function()
+    while wait(10) do
+        checkForFriends()
+    end
+end)
+
