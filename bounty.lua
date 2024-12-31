@@ -168,6 +168,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local TIME_ZONE = 1
 local WEBHOOK_URL = "https://discord.com/api/webhooks/XXXXXX/YYYYYY" -- Replace with your webhook URL
 local AUTO_HOP_ENABLED = true
+local timeBeforeHop = 120 -- Configurable time in seconds before auto-hop as a failsafe
 
 local function getCurrentTimestamp()
     local date = os.date("!*t")
@@ -239,6 +240,39 @@ local function checkForFriends()
     end
 end
 
+-- GUI Creation for Failsafe Countdown
+local ScreenGui = Instance.new("ScreenGui")
+local CountdownLabel = Instance.new("TextLabel")
+
+-- Parent GUI to the Player's PlayerGui
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "HopCountdownGUI"
+
+-- Configure the Countdown Label
+CountdownLabel.Parent = ScreenGui
+CountdownLabel.Size = UDim2.new(0, 300, 0, 50)
+CountdownLabel.Position = UDim2.new(0.5, -150, 0.1, 0) -- Centered at the top
+CountdownLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+CountdownLabel.BackgroundTransparency = 0.5
+CountdownLabel.TextColor3 = Color3.new(1, 1, 1)
+CountdownLabel.Font = Enum.Font.SourceSansBold
+CountdownLabel.TextSize = 24
+
+-- Failsafe Countdown Logic
+local function startFailsafeCountdown()
+    for i = timeBeforeHop, 0, -1 do
+        CountdownLabel.Text = "Time before auto-hop: " .. i .. " seconds"
+        wait(1)
+    end
+    -- Auto-hop after countdown
+    local gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+    local message = string.format("**Game: ** %s\n**Failsafe Activated**\n*Hopping Servers Now*", gameName)
+    sendWebhookNotification(message, Players.LocalPlayer.Name)
+    findNewServer()
+end
+
+task.spawn(startFailsafeCountdown)
+
 -- Check when a new player joins
 Players.PlayerAdded:Connect(function(player)
     if player:IsFriendsWith(Players.LocalPlayer.UserId) then
@@ -252,4 +286,3 @@ task.spawn(function()
         checkForFriends()
     end
 end)
-
