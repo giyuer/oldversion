@@ -155,3 +155,40 @@ getgenv().Theme = { -- getgenv().Theme = false if you want to disable
        }
 }
 loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/248f97d7a28a4d09c641d8279a935333.lua"))()
+
+wait(5)
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Function to check for friends in the game
+local function checkForFriends()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player:IsFriendsWith(LocalPlayer.UserId) then
+            print("Friend found: " .. player.Name)
+            -- Execute the server hop script if a friend is found
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/78n/Amity/main/AutoServerHop.lua"))()
+            return -- Exit the function after finding and executing
+        end
+    end
+    print("No friends found.")
+end
+
+-- Initial check
+checkForFriends()
+
+-- Check when a new player joins
+Players.PlayerAdded:Connect(function(player)
+    if player:IsFriendsWith(LocalPlayer.UserId) then
+        print("Friend found: " .. player.Name)
+        -- Execute the server hop script if a friend joins
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/78n/Amity/main/AutoServerHop.lua"))()
+    end
+end)
+
+-- Periodic checks
+task.spawn(function()
+    while wait(10) do -- Check every 10 seconds
+        checkForFriends()
+    end
+end)
