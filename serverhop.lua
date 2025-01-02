@@ -5,7 +5,7 @@ local GuiService = game:GetService("GuiService")
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Variables for the timer
-local TimerDuration = 300 -- 5 minutes in seconds
+local TimerDuration = 600 -- 5 minutes in seconds
 local TimeLeft = TimerDuration
 local TimerRunning = false
 
