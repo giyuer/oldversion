@@ -6,31 +6,60 @@ wait(10)
 -- Settings 1: Display location
 local settings1 = true
 if settings1 then
-    -- Remove snow parts in the map
-    for _, child in ipairs(workspace._map:GetChildren()) do
-        if child:FindFirstChild("snow") then
-            child.snow:Destroy()
-        end
+-- Remove snow parts in the map
+for _, child in ipairs(workspace._map:GetChildren()) do
+    if child:FindFirstChild("snow") then
+        child.snow:Destroy()
     end
+end
 
-    -- Remove Beacon if it exists
-    if workspace._map.player:FindFirstChild("Beacon") then
-        workspace._map.player.Beacon:Destroy()
+-- Remove Beacon if it exists
+if workspace._map.player:FindFirstChild("Beacon") then
+    workspace._map.player.Beacon:Destroy()
+end
+
+-- Modify area properties
+local area = workspace._map.player:FindFirstChild("area")
+if area then
+    -- Parent for the new parts
+    local parent = area.Parent
+
+    -- Original area dimensions
+    local originalSize = area.Size
+    local originalPosition = area.Position
+
+    -- Destroy the original area
+    area:Destroy()
+
+    -- Define colors for the six parts
+    local colors = {
+        BrickColor.new("Bright red"),
+        BrickColor.new("Bright blue"),
+        BrickColor.new("Bright green"),
+        BrickColor.new("Bright yellow"),
+        BrickColor.new("Bright orange"),
+        BrickColor.new("Bright violet")
+    }
+
+    -- Calculate size for each new part
+    local partSize = Vector3.new(originalSize.X, originalSize.Y / 6, originalSize.Z)
+
+    -- Create six parts
+    for i = 1, 6 do
+        local newPart = Instance.new("Part")
+        newPart.Size = partSize
+        newPart.Anchored = true -- Anchor the part to keep it static
+        newPart.BrickColor = colors[i]
+        newPart.Material = Enum.Material.Neon -- Optional for visual clarity
+
+        -- Calculate position
+        local offset = Vector3.new(0, (i - 3.5) * partSize.Y, 0)
+        newPart.Position = originalPosition + offset
+
+        -- Parent the new part to the same parent as the original
+        newPart.Parent = parent
     end
-
-    -- Modify area properties
-    local area = workspace._map.player:FindFirstChild("area")
-    if area then
-        area.BrickColor = BrickColor.new("Lime green")
-        area.Color = Color3.fromRGB(0, 255, 0)
-        area.Size = Vector3.new(0.3, 15, 15)
-        area.Shape = Enum.PartType.Block
-
-        local attachment = area:FindFirstChild("Attachment")
-        if attachment then
-            attachment:Destroy()
-        end
-    end
+end
 end
 
 -- Settings 2: Card picker
