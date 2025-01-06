@@ -4,7 +4,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/buang5516/buanghub/ma
 wait(10)
 
 -- Settings 1: Display location
-local settings1 = true
+local settings1 = false
 if settings1 then
     -- Remove snow parts in the map
     for _, child in ipairs(workspace._map:GetChildren()) do
