@@ -21,14 +21,14 @@ getgenv().PlayerSetting = {
     IgnoreInCombat = true, --Turn This Off When Reseting Or Hop You Lost Bounty (Rare, Happens On Some Accounts) cf by eric
     ChatKillEnable = false,
     Chat = {"gg"},
-    IgnoreFriends = false, --true neu muon co ban be vao no hop sv
+    IgnoreFriends = true, --true neu muon co ban be vao no hop sv
 }
 getgenv().AttackSetting = {
     ForceMelee = true,
     ForceMeleeTime = 3.5,
-    StopAttack =true, --When Meet Below Condition
+    StopAttack = true, --When Meet Below Condition
     StopAttackAtHealth = 50,--%
-    FastAttack=true, -- Toggle Fast Attack
+    FastAttack= true, -- Toggle Fast Attack
 }
 getgenv().UseSkillSetting = {
     -- Three Methods: "Normal", "Fast", "Spam", "SpamAll"
