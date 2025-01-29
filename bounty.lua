@@ -6,7 +6,7 @@ getgenv().config = {
     },
     ["BypassTp"] = false,
     ["Info Screen"] = true,
-    ["SafeHealth"] = 4000,
+    ["SafeHealth"] = 5000,
     ["Webhooks"] = {
         ["Toggle Webhook"] = false,
         ["Link Webhook"] = "",
