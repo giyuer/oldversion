@@ -1,3 +1,4 @@
+wait(10)
 script_key = "AwNCIhwxJSyjfeZOIatRtjpGibcznGAt"
 getgenv().Team = "Pirates"
 getgenv().WebhookSetting = {
