@@ -15,7 +15,7 @@ getgenv().config = {
     ["SkipFruit"] = {
         "Portal-Portal",
     },
-    ["Skip Race V4 User"] = true,
+    ["Skip Race V4 User"] = false,
     ["Team"] = "Pirates",
     ["MaxBountyHunt"] = 30000000,
     ["MinBountyHunt"] = 0,
@@ -25,14 +25,14 @@ getgenv().config = {
             ["Skills"] = {
                 ["X"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 0.2,
+                    ["HoldTime"] = 0.5,
                 },
                 ["Z"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 0.2,
+                    ["HoldTime"] = 1.2,
                 },
             },
-            ["Delay"] = 1,
+            ["Delay"] = 1.3,
         },
         ["Blox Fruit"] = {
             ["Enable"] = false,
@@ -65,18 +65,18 @@ getgenv().config = {
             ["Skills"] = {
                 ["X"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 0,
+                    ["HoldTime"] = 0.14,
                 },
                 ["C"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 0,
+                    ["HoldTime"] = 0.4,
                 },
                 ["Z"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 2.5,
+                    ["HoldTime"] = 1.2,
                 },
             },
-            ["Delay"] = 1.75,
+            ["Delay"] = 1,
         },
         ["Gun"] = {
             ["Enable"] = false,
