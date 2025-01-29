@@ -7,7 +7,7 @@ getgenv().config = {
     ["Info Screen"] = true,
     ["SafeHealth"] = 4000,
     ["Webhooks"] = {
-        ["Toggle Webhook"] = true,
+        ["Toggle Webhook"] = false,
         ["Link Webhook"] = "",
     },
     ["White Screen"] = false,
