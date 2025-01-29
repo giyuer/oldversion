@@ -1,3 +1,4 @@
+getgenv().key = "7af34W9DWolt7w1CBL0R7mgJw"
 getgenv().config = {
     ["Use Race"] = {
         ["V4"] = true,
