@@ -15,7 +15,7 @@ getgenv().config = {
     ["SkipFruit"] = {
         "Portal-Portal",
     },
-    ["Skip Race V4 User"] = false,
+    ["Skip Race V4 User"] = true,
     ["Team"] = "Pirates",
     ["MaxBountyHunt"] = 30000000,
     ["MinBountyHunt"] = 0,
