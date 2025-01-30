@@ -4,18 +4,18 @@ getgenv().config = {
         ["V4"] = true,
         ["V3"] = true,
     },
-    ["BypassTp"] = false,
+    ["BypassTp"] = true,
     ["Info Screen"] = true,
-    ["SafeHealth"] = 5000,
+    ["SafeHealth"] = 4000,
     ["Webhooks"] = {
-        ["Toggle Webhook"] = false,
+        ["Toggle Webhook"] = true,
         ["Link Webhook"] = "",
     },
     ["White Screen"] = false,
     ["SkipFruit"] = {
         "Portal-Portal",
     },
-    ["Skip Race V4 User"] = false,
+    ["Skip Race V4 User"] = true,
     ["Team"] = "Pirates",
     ["MaxBountyHunt"] = 30000000,
     ["MinBountyHunt"] = 0,
@@ -25,14 +25,14 @@ getgenv().config = {
             ["Skills"] = {
                 ["X"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 1.5,
+                    ["HoldTime"] = 0.2,
                 },
                 ["Z"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 1.5,
+                    ["HoldTime"] = 0.2,
                 },
             },
-            ["Delay"] = 2,
+            ["Delay"] = 1,
         },
         ["Blox Fruit"] = {
             ["Enable"] = false,
@@ -65,32 +65,32 @@ getgenv().config = {
             ["Skills"] = {
                 ["X"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 1.5,
+                    ["HoldTime"] = 0,
                 },
                 ["C"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 1.5,
+                    ["HoldTime"] = 0,
                 },
                 ["Z"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 1.5,
+                    ["HoldTime"] = 2.5,
                 },
             },
-            ["Delay"] = 2,
+            ["Delay"] = 1.75,
         },
         ["Gun"] = {
-            ["Enable"] = true,
+            ["Enable"] = false,
             ["Skills"] = {
                 ["X"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 1.5,
+                    ["HoldTime"] = 0,
                 },
                 ["Z"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 1.5,
+                    ["HoldTime"] = 0,
                 },
             },
-            ["Delay"] = 2,
+            ["Delay"] = 1,
         },
     },
 }
