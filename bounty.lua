@@ -79,18 +79,18 @@ getgenv().config = {
             ["Delay"] = 3,
         },
         ["Gun"] = {
-            ["Enable"] = false,
+            ["Enable"] = true,
             ["Skills"] = {
                 ["X"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 0,
+                    ["HoldTime"] = 2.5,
                 },
                 ["Z"] = {
                     ["Enable"] = true,
-                    ["HoldTime"] = 0,
+                    ["HoldTime"] = 2.5,
                 },
             },
-            ["Delay"] = 1,
+            ["Delay"] = 3,
         },
     },
 }
