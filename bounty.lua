@@ -4,7 +4,7 @@ getgenv().config = {
         ["V4"] = true,
         ["V3"] = true,
     },
-    ["BypassTp"] = false,
+    ["BypassTp"] = true,
     ["Info Screen"] = true,
     ["SafeHealth"] = 5000,
     ["Webhooks"] = {
@@ -15,7 +15,7 @@ getgenv().config = {
     ["SkipFruit"] = {
         "Portal-Portal",
     },
-    ["Skip Race V4 User"] = true,
+    ["Skip Race V4 User"] = false,
     ["Team"] = "Pirates",
     ["MaxBountyHunt"] = 30000000,
     ["MinBountyHunt"] = 0,
