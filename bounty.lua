@@ -4,7 +4,7 @@ getgenv().config = {
         ["V4"] = true,
         ["V3"] = true,
     },
-    ["BypassTp"] = true,
+    ["BypassTp"] = false,
     ["Info Screen"] = true,
     ["SafeHealth"] = 4000,
     ["Webhooks"] = {
