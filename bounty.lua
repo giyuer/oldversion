@@ -1,6 +1,6 @@
 getgenv().Configs = {
     ["Team"] = "Pirates", -- Pirates/Marines
-    ["Speed Tween"] = 200, -- Highly recommend 300 speed is good enough to anti security kick. maximum you can use is 350
+    ["Speed Tween"] = 100, -- Highly recommend 300 speed is good enough to anti security kick. maximum you can use is 350
     ["Auto turn on race v3"] = true,
     ["Auto turn on race v4"] = true,
     ["Click Time"] = 0.2,
@@ -10,7 +10,7 @@ getgenv().Configs = {
         ["Message"] = {"Made By Night", "Made By DarkRel"}, -- Input your message here
     },
     ["Run When Low Health"] = {
-        ["Enable"] = false,
+        ["Enable"] = true,
         ["Health"] = 3500,
         ["Come back"] = true
     },
