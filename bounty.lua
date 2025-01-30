@@ -10,7 +10,7 @@ getgenv().Configs = {
         ["Message"] = {"Made By Night", "Made By DarkRel"}, -- Input your message here
     },
     ["Run When Low Health"] = {
-        ["Enable"] = true,
+        ["Enable"] = false,
         ["Health"] = 3500,
         ["Come back"] = true
     },
