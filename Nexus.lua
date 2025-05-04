@@ -132,7 +132,7 @@ do -- Nexus definition
             while self.IsConnected and not self.Terminated do
                 local ok = pcall(self.Send, self, "ping")
                 if not ok then break end
-                task.wait(100) -- Keep this long interval
+                task.wait(30) -- Keep this long interval
             end
         end
     end
