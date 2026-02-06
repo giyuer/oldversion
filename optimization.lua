@@ -1,6 +1,4 @@
 --================ FPS =================
-setfpscap(15)
-
 --================ SERVICES =================
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
