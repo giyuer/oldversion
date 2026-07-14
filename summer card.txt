@@ -1,0 +1,357 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local CONFIG_PATH = "MarusHub/UTD_SummerAutoCards.json"
+
+-- Modern Dark Hub Theme
+local COL_BG = Color3.fromRGB(15, 15, 17)
+local COL_PANEL = Color3.fromRGB(22, 22, 26)
+local COL_ROW = Color3.fromRGB(30, 30, 36)
+local COL_ROW_HOVER = Color3.fromRGB(42, 42, 50)
+local COL_LINE = Color3.fromRGB(50, 50, 58)
+local COL_TEXT = Color3.fromRGB(245, 245, 247)
+local COL_DIM = Color3.fromRGB(142, 142, 147)
+local COL_ACCENT = Color3.fromRGB(255, 126, 31)
+local COL_ON = Color3.fromRGB(52, 199, 89)
+
+local FONT_MED = Enum.Font.BuilderSansMedium
+local FONT_BOLD = Enum.Font.BuilderSansBold
+local FAST = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local SMOOTH = TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+-- Kích thước siêu gọn cho mobile
+local MAX_SIZE = Vector2.new(280, 240)
+local MINI_SIZE = Vector2.new(280, 72)
+
+local CARD_DATA_POOL = {
+    { name = "Distortion", desc = "Gain +50% dmg, -25% SPA, +50% range, attacks stun" },
+    { name = "Double Sided Blade", desc = "Lose stocks. Gain 1.5x income, +25% unit dmg" },
+    { name = "Scorching Flames", desc = "DoT damage is increased by 100%" },
+    { name = "Slowing Hex", desc = "All slow effects are 15% more potent" },
+    { name = "Blissful Savior", desc = "Revive with 1 stock, push & stun enemies" },
+    { name = "Trophy Collector", desc = "Enemy kill Yen is doubled. Income +15%" },
+    { name = "Necro's Summon", desc = "Killed enemies 25% chance to return as summons" },
+    { name = "Iron Will", desc = "Units gain +50% effect resistance" },
+    { name = "Crimson King's Court", desc = "Skip to the next boss or mini boss wave" }
+}
+
+local SMART_KEYWORDS = { "damage", "dot", "slow", "stun", "income", "summon" }
+
+local state = {
+    autoSmart = true,
+    autoPriority = false,
+    voteDelay = 1.0,
+    priority = {}
+}
+
+local function readConfig()
+    local ok, raw = pcall(function() if isfile and isfile(CONFIG_PATH) then return readfile(CONFIG_PATH) end end)
+    if ok and raw then
+        local ok2, data = pcall(function() return HttpService:JSONDecode(raw) end)
+        if ok2 and type(data) == "table" then
+            state.autoSmart = data.autoSmart == true
+            state.autoPriority = data.autoPriority == true
+            state.voteDelay = tonumber(data.voteDelay) or 1.0
+            state.priority = type(data.priority) == "table" and data.priority or {}
+        end
+    end
+end
+
+local function saveConfig()
+    pcall(function()
+        if not writefile then return end
+        if makefolder and (not isfolder or not isfolder("MarusHub")) then pcall(makefolder, "MarusHub") end
+        writefile(CONFIG_PATH, HttpService:JSONEncode({ autoSmart = state.autoSmart, autoPriority = state.autoPriority, voteDelay = state.voteDelay, priority = state.priority }))
+    end)
+end
+
+readConfig()
+local unloaded = false
+local rebuildPriority, refreshDropdown
+local updateVisualToggles
+
+local function guiParent()
+    local ok, target = pcall(function() return gethui and gethui() or game:GetService("CoreGui") end)
+    return ok and target or PlayerGui
+end
+
+for _, old in ipairs(guiParent():GetChildren()) do if old.Name == "UTD_SummerAutoCards" then old:Destroy() end end
+
+local Screen = Instance.new("ScreenGui")
+Screen.Name = "UTD_SummerAutoCards"
+Screen.ResetOnSpawn = false
+Screen.IgnoreGuiInset = true
+Screen.Parent = guiParent()
+
+local function make(class, props, parent)
+    local o = Instance.new(class) for k, v in pairs(props) do o[k] = v end if parent then o.Parent = parent end return o
+end
+
+local function corner(inst, r) make("UICorner", { CornerRadius = UDim.new(0, r or 5) }, inst) end
+local function stroke(inst, color, thickness)
+    return make("UIStroke", { Color = color or COL_LINE, Thickness = thickness or 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, inst)
+end
+local function tween(inst, info, props) local t = TweenService:Create(inst, info, props) t:Play() return t end
+
+-- MAIN WINDOW UI (Khởi động ở dạng Mini mặc định để tránh chật màn hình)
+local Window = make("Frame", { Name = "Window", Size = UDim2.fromOffset(MINI_SIZE.X, MINI_SIZE.Y), Position = UDim2.new(0.5, -140, 0.2, 0), BackgroundColor3 = COL_BG, BorderSizePixel = 0, ClipsDescendants = true }, Screen)
+corner(Window, 6) stroke(Window, COL_LINE, 1)
+
+-- FLOATING STAR BUTTON
+local FloatBtn = make("TextButton", { Name = "FloatBtn", Size = UDim2.fromOffset(38, 38), Position = UDim2.new(0.85, 0, 0.2, 0), BackgroundColor3 = COL_PANEL, Text = "★", TextColor3 = COL_ACCENT, Font = FONT_BOLD, TextSize = 16, Visible = false, ZIndex = 100 }, Screen)
+corner(FloatBtn, 19) stroke(FloatBtn, COL_ACCENT, 1)
+
+-- TITLE BAR
+local TitleBar = make("Frame", { Size = UDim2.new(1, 0, 0, 32), BackgroundColor3 = COL_PANEL, BorderSizePixel = 0, ZIndex = 3 }, Window)
+corner(TitleBar, 6)
+make("Frame", { Size = UDim2.new(1, 0, 0, 6), Position = UDim2.new(0, 0, 1, -6), BackgroundColor3 = COL_PANEL, BorderSizePixel = 0, ZIndex = 3 }, TitleBar)
+make("TextLabel", { Size = UDim2.new(1, -90, 1, 0), Position = UDim2.fromOffset(10, 0), BackgroundTransparency = 1, Text = "Marus Hub", TextColor3 = COL_TEXT, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_BOLD, TextSize = 13, ZIndex = 4 }, TitleBar)
+
+local function iconButton(x, text, hoverColor)
+    local b = make("TextButton", { Size = UDim2.fromOffset(20, 24), Position = UDim2.new(1, x, 0.5, -12), BackgroundColor3 = COL_ROW, BackgroundTransparency = 1, Text = text, TextColor3 = COL_DIM, Font = FONT_BOLD, TextSize = 11, AutoButtonColor = false, ZIndex = 4 }, TitleBar)
+    corner(b, 4)
+    b.MouseEnter:Connect(function() tween(b, FAST, { BackgroundTransparency = 0, TextColor3 = hoverColor or COL_TEXT }) end)
+    b.MouseLeave:Connect(function() tween(b, FAST, { BackgroundTransparency = 1, TextColor3 = COL_DIM }) end)
+    return b
+end
+
+local MiniBtn = iconButton(-50, "—", COL_TEXT)
+local CloseBtn = iconButton(-24, "✕", Color3.fromRGB(255, 69, 58))
+
+local Body = make("Frame", { Size = UDim2.new(1, -16, 1, -40), Position = UDim2.fromOffset(8, 36), BackgroundTransparency = 1, Visible = false }, Window)
+local BodyList = make("UIListLayout", { Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder }, Body)
+
+-- RADIO TOGGLES
+local toggleObjects = {}
+local function createToggle(order, labelText, key)
+    local row = make("Frame", { Size = UDim2.new(1, 0, 0, 26), BackgroundColor3 = COL_PANEL, LayoutOrder = order }, Body)
+    corner(row, 4) stroke(row, COL_LINE, 1)
+    make("TextLabel", { Size = UDim2.new(1, -50, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1, Text = labelText, TextColor3 = COL_TEXT, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_MED, TextSize = 11 }, row)
+    local sw = make("TextButton", { Size = UDim2.fromOffset(32, 14), Position = UDim2.new(1, -40, 0.5, -7), BackgroundColor3 = COL_ROW, BorderSizePixel = 0, Text = "" }, row)
+    corner(sw, 7)
+    local knob = make("Frame", { Size = UDim2.fromOffset(10, 10), Position = UDim2.new(0, 2, 0.5, -5), BackgroundColor3 = COL_TEXT, BorderSizePixel = 0 }, sw)
+    corner(knob, 5)
+
+    toggleObjects[key] = { sw = sw, knob = knob }
+    sw.MouseButton1Click:Connect(function()
+        if key == "autoSmart" then state.autoSmart, state.autoPriority = true, false else state.autoSmart, state.autoPriority = false, true end
+        updateVisualToggles() saveConfig()
+    end)
+end
+
+updateVisualToggles = function()
+    for k, obj in pairs(toggleObjects) do
+        local active = state[k]
+        tween(obj.sw, SMOOTH, { BackgroundColor3 = active and COL_ON or COL_ROW })
+        tween(obj.knob, SMOOTH, { Position = active and UDim2.new(1, -12, 0.5, -5) or UDim2.new(0, 2, 0.5, -5) })
+    end
+end
+
+createToggle(1, "Auto Smart Mode (Scan Buffs)", "autoSmart")
+createToggle(2, "Auto Priority Mode (Custom)", "autoPriority")
+
+-- DELAY ROW
+local rowDelay = make("Frame", { Size = UDim2.new(1, 0, 0, 26), BackgroundColor3 = COL_PANEL, LayoutOrder = 3 }, Body)
+corner(rowDelay, 4) stroke(rowDelay, COL_LINE, 1)
+make("TextLabel", { Size = UDim2.new(0.6, 0, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1, Text = "Vote Delay (s)", TextColor3 = COL_TEXT, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_MED, TextSize = 11 }, rowDelay)
+local box = make("TextBox", { Size = UDim2.new(0.25, 0, 0, 18), Position = UDim2.new(0.75, -6, 0.5, -9), BackgroundColor3 = COL_ROW, Text = tostring(state.voteDelay), TextColor3 = COL_ACCENT, Font = FONT_MED, TextSize = 11, ClearTextOnFocus = false }, rowDelay)
+corner(box, 3) local bs = stroke(box, COL_LINE, 1)
+box.Focused:Connect(function() tween(box, FAST, { TextColor3 = COL_TEXT }) tween(bs, FAST, { Color = COL_ACCENT }) end)
+box.FocusLost:Connect(function()
+    tween(bs, FAST, { Color = COL_LINE }) tween(box, FAST, { TextColor3 = COL_ACCENT })
+    local n = tonumber(box.Text) if n and n >= 0 then state.voteDelay = n end box.Text = tostring(state.voteDelay) saveConfig()
+end)
+
+-- DROPDOWN PICK CARD
+local addPanel = make("Frame", { Size = UDim2.new(1, 0, 0, 26), BackgroundColor3 = COL_PANEL, LayoutOrder = 4 }, Body)
+corner(addPanel, 4) stroke(addPanel, COL_LINE, 1)
+local ddButton = make("TextButton", { Size = UDim2.new(1, -12, 1, -8), Position = UDim2.fromOffset(6, 4), BackgroundColor3 = COL_ROW, BorderSizePixel = 0, Text = "", AutoButtonColor = false }, addPanel)
+corner(ddButton, 3) stroke(ddButton, COL_LINE, 1)
+local ddTitle = make("TextLabel", { Size = UDim2.new(1, -30, 1, 0), Position = UDim2.fromOffset(6, 0), BackgroundTransparency = 1, Text = "Click to add custom list...", TextColor3 = COL_DIM, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_MED, TextSize = 11 }, ddButton)
+local chevron = make("TextLabel", { Size = UDim2.fromOffset(12, 12), Position = UDim2.new(1, -18, 0.5, -6), BackgroundTransparency = 1, Text = "▼", TextColor3 = COL_ACCENT, Font = FONT_BOLD, TextSize = 8 }, ddButton)
+
+-- PRIORITY PANEL
+local priorityPanel = make("Frame", { Size = UDim2.new(1, 0, 1, -124), BackgroundColor3 = COL_PANEL, LayoutOrder = 5 }, Body)
+corner(priorityPanel, 4) stroke(priorityPanel, COL_LINE, 1)
+local priorityScroll = make("ScrollingFrame", { Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 4), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = COL_LINE, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y }, priorityPanel)
+make("UIListLayout", { Padding = UDim.new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder }, priorityScroll)
+
+-- STATUS BAR (Mặc định nằm thẳng ở Window khi khởi động dạng nhỏ gọn)
+local Status = make("TextLabel", { Size = UDim2.new(1, -16, 0, 26), BackgroundColor3 = COL_PANEL, BorderSizePixel = 0, Text = "  Status: Idle", TextColor3 = COL_DIM, Font = FONT_MED, TextSize = 11, Position = UDim2.fromOffset(8, 36) }, Window)
+corner(Status, 4) stroke(Status, COL_LINE, 1)
+
+local function setStatus(text, color)
+    Status.Text = "  Status: " .. text tween(Status, FAST, { TextColor3 = color or COL_DIM })
+end
+
+local function inPriority(name) for _, v in ipairs(state.priority) do if v:lower() == name:lower() then return true end end return false end
+local function addToPriority(name) if name == "" or inPriority(name) then return end table.insert(state.priority, name) saveConfig() rebuildPriority() refreshDropdown() end
+local function removeEntry(index) table.remove(state.priority, index) saveConfig() rebuildPriority() refreshDropdown() end
+
+rebuildPriority = function()
+    for _, c in ipairs(priorityScroll:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
+    if #state.priority == 0 then
+        local empty = make("Frame", { Size = UDim2.new(1, -4, 0, 30), BackgroundTransparency = 1 }, priorityScroll)
+        make("TextLabel", { Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "Priority custom list is empty.", TextColor3 = COL_DIM, Font = FONT_MED, TextSize = 10 }, empty)
+        return
+    end
+    for i, name in ipairs(state.priority) do
+        local targetPoolData
+        for _, p in ipairs(CARD_DATA_POOL) do if p.name == name then targetPoolData = p break end end
+        local sub = targetPoolData and targetPoolData.desc or "No description"
+        local row = make("Frame", { Size = UDim2.new(1, -4, 0, 26), BackgroundColor3 = COL_ROW, LayoutOrder = i }, priorityScroll)
+        corner(row, 4)
+        make("TextLabel", { Size = UDim2.fromOffset(16, 26), Position = UDim2.fromOffset(4, 0), BackgroundTransparency = 1, Text = tostring(i), TextColor3 = COL_ACCENT, Font = FONT_BOLD, TextSize = 10 }, row)
+        make("TextLabel", { Size = UDim2.new(1, -40, 0, 14), Position = UDim2.fromOffset(20, 1), BackgroundTransparency = 1, Text = name, TextColor3 = COL_TEXT, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_BOLD, TextSize = 10 }, row)
+        make("TextLabel", { Size = UDim2.new(1, -40, 0, 12), Position = UDim2.fromOffset(20, 13), BackgroundTransparency = 1, Text = sub, TextColor3 = COL_DIM, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_MED, TextSize = 8, TextTruncate = Enum.TextTruncate.AtEnd }, row)
+        local del = make("TextButton", { Size = UDim2.fromOffset(16, 16), Position = UDim2.new(1, -20, 0.5, -8), BackgroundColor3 = COL_PANEL, BackgroundTransparency = 1, Text = "✕", TextColor3 = COL_DIM, Font = FONT_BOLD, TextSize = 9 }, row)
+        corner(del, 3) del.MouseButton1Click:Connect(function() removeEntry(i) end)
+    end
+end
+
+-- DROPDOWN MENU PANEL
+local ddList = make("Frame", { BackgroundColor3 = COL_PANEL, BorderSizePixel = 0, Visible = false, ZIndex = 40, Size = UDim2.fromOffset(180, 0), ClipsDescendants = true }, Window)
+corner(ddList, 4) stroke(ddList, COL_ACCENT, 1)
+local ddScroll = make("ScrollingFrame", { Size = UDim2.new(1, -4, 1, -4), Position = UDim2.fromOffset(2, 2), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = COL_LINE, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 40 }, ddList)
+make("UIListLayout", { Padding = UDim.new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder }, ddScroll)
+
+refreshDropdown = function()
+    for _, c in ipairs(ddScroll:GetChildren()) do if c:IsA("TextButton") or c:IsA("TextLabel") then c:Destroy() end end
+    for i, data in ipairs(CARD_DATA_POOL) do
+        if not inPriority(data.name) then
+            local opt = make("TextButton", { Size = UDim2.new(1, -4, 0, 28), BackgroundColor3 = COL_ROW, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, LayoutOrder = i, ZIndex = 40 }, ddScroll)
+            corner(opt, 3)
+            make("TextLabel", { Size = UDim2.new(1, -12, 0, 14), Position = UDim2.fromOffset(6, 1), BackgroundTransparency = 1, Text = data.name, TextColor3 = COL_TEXT, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_BOLD, TextSize = 10, ZIndex = 41 }, opt)
+            make("TextLabel", { Size = UDim2.new(1, -12, 0, 12), Position = UDim2.fromOffset(6, 14), BackgroundTransparency = 1, Text = data.desc, TextColor3 = COL_DIM, TextXAlignment = Enum.TextXAlignment.Left, Font = FONT_MED, TextSize = 8, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 41 }, opt)
+            opt.MouseButton1Click:Connect(function() addToPriority(data.name) closeDropdown() end)
+        end
+    end
+end
+
+local function closeDropdown() if not ddOpen then return end ddOpen = false local t = tween(ddList, FAST, { Size = UDim2.fromOffset(ddList.AbsoluteSize.X, 0) }) t.Completed:Connect(function() if not ddOpen then ddList.Visible = false end end) end
+local function openDropdown()
+    refreshDropdown() local rel = ddButton.AbsolutePosition - Window.AbsolutePosition local w = ddButton.AbsoluteSize.X local count = 0 for _, d in ipairs(CARD_DATA_POOL) do if not inPriority(d.name) then count = count + 1 end end
+    local target = math.clamp(count * 30 + 6, 30, 130) ddList.Position = UDim2.fromOffset(rel.X, rel.Y + ddButton.AbsoluteSize.Y + 3) ddList.Size = UDim2.fromOffset(w, 0) ddList.Visible = true ddOpen = true tween(ddList, SMOOTH, { Size = UDim2.fromOffset(w, target) })
+end
+ddButton.MouseButton1Click:Connect(function() if ddOpen then closeDropdown() else openDropdown() end end)
+
+updateVisualToggles() rebuildPriority()
+
+-- DRAGGING WORKSPACE
+local dragging, dragStart, startPos
+TitleBar.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true dragStart = input.Position startPos = Window.Position closeDropdown() end end)
+UserInputService.InputChanged:Connect(function(input) if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local delta = input.Position - dragStart Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
+
+-- NÚT MINI RESIZE ĐÃ FIX LỖI 100% CHO MÀN MOBILE
+local ResizeGrip = make("TextButton", { Name = "ResizeGrip", Size = UDim2.fromOffset(20, 20), Position = UDim2.new(1, -74, 0.5, -10), BackgroundColor3 = COL_ROW, BackgroundTransparency = 1, Text = "◢", TextColor3 = COL_DIM, Font = FONT_BOLD, TextSize = 11, ZIndex = 5 }, TitleBar)
+local isMiniMode = true -- Mặc định bật Mini khi chạy
+
+ResizeGrip.MouseButton1Click:Connect(function()
+    closeDropdown()
+    isMiniMode = not isMiniMode
+    if isMiniMode then
+        Body.Visible = false
+        Status.Parent = Window
+        Status.Size = UDim2.new(1, -16, 0, 26)
+        Status.Position = UDim2.fromOffset(8, 36)
+        tween(Window, SMOOTH, { Size = UDim2.fromOffset(MINI_SIZE.X, MINI_SIZE.Y) })
+    else
+        Status.Parent = Body
+        Status.Size = UDim2.new(1, 0, 0, 26)
+        Status.LayoutOrder = 6
+        local t = tween(Window, SMOOTH, { Size = UDim2.fromOffset(MAX_SIZE.X, MAX_SIZE.Y) })
+        t.Completed:Connect(function() if not isMiniMode then Body.Visible = true end end)
+    end
+end)
+
+-- FLOATING ACTIONS
+MiniBtn.MouseButton1Click:Connect(function() closeDropdown() Window.Visible = false FloatBtn.Position = UDim2.fromOffset(Window.AbsolutePosition.X + 15, Window.AbsolutePosition.Y + 8) FloatBtn.Visible = true end)
+FloatBtn.MouseButton1Click:Connect(function() FloatBtn.Visible = false Window.Visible = true end)
+
+local fDragging, fStart, fPos
+FloatBtn.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then fDragging = true fStart = i.Position fPos = FloatBtn.Position end end)
+UserInputService.InputChanged:Connect(function(i) if fDragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then local d = i.Position - fStart FloatBtn.Position = UDim2.new(fPos.X.Scale, fPos.X.Offset + d.X, fPos.Y.Scale, fPos.Y.Offset + d.Y) end end)
+UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then fDragging = false end end)
+CloseBtn.MouseButton1Click:Connect(function() unloaded = true Screen:Destroy() end)
+
+-- DETECT ENGINE
+local function getModeCards()
+    local gameUI = PlayerGui:FindFirstChild("GameUI")
+    local mc = gameUI and gameUI:FindFirstChild("ModeCards")
+    local ps = mc and mc:FindFirstChild("PathSelection")
+    return mc, ps and ps:FindFirstChild("Cards")
+end
+
+local function collectCards(cardsFrame)
+    local list = {}
+    for _, c in ipairs(cardsFrame:GetChildren()) do
+        if c:IsA("GuiObject") and not c:IsA("UILayout") then
+            local titleLabel = c:FindFirstChild("Title", true)
+            local hitbox = c:FindFirstChild("Hitbox", true)
+            if titleLabel and hitbox and titleLabel:IsA("TextLabel") then
+                local name = tostring(titleLabel.Text):gsub("^%s+", ""):gsub("%s+$", "")
+                local textCollected = {}
+                for _, obj in ipairs(c:GetDescendants()) do
+                    if obj:IsA("TextLabel") then
+                        local rawText = tostring(obj.Text):gsub("^%s+", ""):gsub("%s+$", "")
+                        if rawText ~= "" and obj ~= titleLabel and not tonumber(rawText) and rawText ~= name and obj.Name ~= "Order" then table.insert(textCollected, rawText) end
+                    end
+                end
+                if name ~= "" then table.insert(list, { name = name, buff = table.concat(textCollected, " "):lower(), hitbox = hitbox, order = c.LayoutOrder }) end
+            end
+        end
+    end
+    table.sort(list, function(a, b) return a.order < b.order end) return list
+end
+
+local function chooseCard(cards)
+    if state.autoPriority then
+        local bestRank, best
+        for _, card in ipairs(cards) do
+            for rank, wantedName in ipairs(state.priority) do
+                if card.name:lower() == wantedName:lower() then if not bestRank or rank < bestRank then bestRank = rank best = card end break end
+            end
+        end
+        if best then return best, "Custom List" end
+    end
+    if state.autoSmart then
+        for _, wantedKeyword in ipairs(SMART_KEYWORDS) do
+            for _, card in ipairs(cards) do if string.find(card.buff, wantedKeyword) then return card, "Smart Mode (" .. wantedKeyword .. ")" end end
+        end
+    end
+    return cards[1], "Default (Card 1)"
+end
+
+local currentSignature, votedSignature = nil, nil
+task.spawn(function()
+    while not unloaded do
+        task.wait(0.35)
+        local mc, cardsFrame = getModeCards()
+        if not mc or not cardsFrame or not mc.Enabled then if currentSignature ~= nil then currentSignature = nil setStatus("Idle", COL_DIM) end continue end
+        local cards = collectCards(cardsFrame)
+        if #cards == 0 then continue end
+
+        local signature = ""
+        for _, c in ipairs(cards) do signature = signature .. c.name .. "|" end
+        if signature ~= currentSignature then currentSignature = signature setStatus("New cards detected (" .. #cards .. ")", COL_ACCENT) end
+
+        if signature ~= votedSignature then
+            local chosen, reason = chooseCard(cards)
+            if chosen then
+                task.wait(state.voteDelay)
+                if mc.Enabled and chosen.hitbox and firesignal then
+                    firesignal(chosen.hitbox.Activated) votedSignature = signature
+                    setStatus("Voted: " .. chosen.name .. " [" .. reason .. "]", COL_ON)
+                end
+            end
+        end
+    end
+end)
+
+setStatus("Marus Hub is ready", COL_DIM)
